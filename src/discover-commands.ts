@@ -7,6 +7,7 @@ import { convertPlaceholders } from "./convert-placeholders.js";
 import { buildCommandName } from "./build-command-name.js";
 import { findMdFilesRecursive } from "./find-md-files.js";
 import { findSkillFiles } from "./find-skill-files.js";
+import { resolveModel } from "./resolve-model.js";
 
 const parseCommandFile = async (
   filePath: string,
@@ -14,6 +15,7 @@ const parseCommandFile = async (
   prefix: string,
   isSkill: boolean,
   label: string,
+  modelMap?: Record<string, string>,
 ): Promise<ClaudeCommand> => {
   const raw = await readFile(filePath, "utf-8");
   const { frontmatter, body } = parseFrontmatter(raw);
@@ -27,8 +29,10 @@ const parseCommandFile = async (
       typeof frontmatter.description === "string"
         ? frontmatter.description
         : undefined,
-    model:
+    model: resolveModel(
       typeof frontmatter.model === "string" ? frontmatter.model : undefined,
+      modelMap,
+    ),
     agent:
       typeof frontmatter.agent === "string" ? frontmatter.agent : undefined,
     subtask: frontmatter.context === "fork" ? true : undefined,
@@ -67,7 +71,14 @@ export const discoverCommands = async (
       const cmdFiles = await findMdFilesRecursive(commandsDir);
       const cmdCommands = await Promise.all(
         cmdFiles.map((filePath) =>
-          parseCommandFile(filePath, commandsDir, config.prefix, false, label),
+          parseCommandFile(
+            filePath,
+            commandsDir,
+            config.prefix,
+            false,
+            label,
+            config.modelMap,
+          ),
         ),
       );
 
@@ -82,6 +93,7 @@ export const discoverCommands = async (
                   config.prefix,
                   true,
                   label,
+                  config.modelMap,
                 ),
               ),
             ),

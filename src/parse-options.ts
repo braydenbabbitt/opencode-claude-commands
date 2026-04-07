@@ -11,4 +11,10 @@ export const parseOptions = (options?: PluginOptions): PluginConfig => ({
     typeof options?.includeSkills === "boolean" ? options.includeSkills : true,
   defaultAgent:
     typeof options?.defaultAgent === "string" ? options.defaultAgent : "build",
+  modelMap:
+    options?.modelMap &&
+    typeof options.modelMap === "object" &&
+    !Array.isArray(options.modelMap)
+      ? (options.modelMap as Record<string, string>)
+      : undefined,
 });

@@ -28,4 +28,6 @@ export interface PluginConfig {
   includeSkills: boolean;
   /** Fallback agent when Claude's agent field isn't compatible (default: "build") */
   defaultAgent: string;
+  /** User-provided model name overrides (e.g. { "sonnet": "anthropic/claude-sonnet-4-5" }) */
+  modelMap?: Record<string, string>;
 }
