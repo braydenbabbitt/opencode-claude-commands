@@ -88,7 +88,7 @@ Claude Code commands often use shorthand model names like `sonnet` or `haiku`. T
 | Shorthand | Resolves to                   |
 | --------- | ----------------------------- |
 | `opus`    | `anthropic/claude-opus-4-6`   |
-| `sonnet`  | `anthropic/claude-sonnet-4-5` |
+| `sonnet`  | `anthropic/claude-sonnet-4-6` |
 | `haiku`   | `anthropic/claude-haiku-4-5`  |
 
 Full model IDs (containing `/`) are passed through as-is.

@@ -11,6 +11,7 @@ const MODEL_FAMILIES: Record<string, string[]> = {
     "anthropic/claude-opus-4-0",
   ],
   sonnet: [
+    "anthropic/claude-sonnet-4-6",
     "anthropic/claude-sonnet-4-5",
     "anthropic/claude-sonnet-4-0",
     "anthropic/claude-3-7-sonnet-20250219",
