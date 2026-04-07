@@ -5,10 +5,9 @@ import { getValidAgents } from "./get-valid-agents.js";
 import { resolveAgent } from "./resolve-agent.js";
 import { parseOptions } from "./parse-options.js";
 
-export const ClaudeCommandsPlugin: Plugin = async (
-  { client, directory },
-  options,
-) => {
+// Export as `server` for PluginModule format (npm plugins)
+// and as named export for local plugin discovery
+export const server: Plugin = async ({ client, directory }, options) => {
   const pluginConfig = parseOptions(options);
 
   // Discover commands from .claude directories
@@ -85,3 +84,6 @@ export const ClaudeCommandsPlugin: Plugin = async (
     },
   };
 };
+
+// Named alias for convenience
+export const ClaudeCommandsPlugin = server;
