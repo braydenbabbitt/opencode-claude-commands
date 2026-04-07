@@ -1,0 +1,32 @@
+{
+  "name": "opencode-claude-commands",
+  "version": "0.1.0",
+  "description": "OpenCode plugin that loads slash commands from .claude/commands and .claude/skills directories",
+  "type": "module",
+  "main": "src/index.ts",
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "claude",
+    "claude-code",
+    "commands",
+    "skills"
+  ],
+  "license": "MIT",
+  "author": "Brayden Babbitt",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/braydenbabbitt/opencode-claude-commands"
+  },
+  "files": [
+    "src"
+  ],
+  "peerDependencies": {
+    "@opencode-ai/plugin": "*"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "1.3.17",
+    "@types/node": "25.5.2",
+    "typescript": "5.9.3"
+  }
+}
