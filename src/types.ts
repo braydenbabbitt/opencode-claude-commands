@@ -5,8 +5,10 @@ export interface ClaudeCommand {
   template: string;
   /** Optional description from frontmatter */
   description?: string;
-  /** Optional model override from frontmatter */
+  /** Resolved model ID for OpenCode */
   model?: string;
+  /** Raw model name from Claude frontmatter (for JIT warning if unresolved) */
+  rawModel?: string;
   /** Optional agent from frontmatter */
   agent?: string;
   /** Whether to run as a subtask (mapped from Claude's context: fork) */
@@ -30,4 +32,6 @@ export interface PluginConfig {
   defaultAgent: string;
   /** User-provided model name overrides (e.g. { "sonnet": "anthropic/claude-sonnet-4-5" }) */
   modelMap?: Record<string, string>;
+  /** Show short message in chat instead of full template, inject full prompt behind the scenes (default: true) */
+  compactCommands: boolean;
 }

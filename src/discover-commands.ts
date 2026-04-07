@@ -29,6 +29,8 @@ const parseCommandFile = async (
       typeof frontmatter.description === "string"
         ? frontmatter.description
         : undefined,
+    rawModel:
+      typeof frontmatter.model === "string" ? frontmatter.model : undefined,
     model: resolveModel(
       typeof frontmatter.model === "string" ? frontmatter.model : undefined,
       modelMap,

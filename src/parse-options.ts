@@ -17,4 +17,8 @@ export const parseOptions = (options?: PluginOptions): PluginConfig => ({
     !Array.isArray(options.modelMap)
       ? (options.modelMap as Record<string, string>)
       : undefined,
+  compactCommands:
+    typeof options?.compactCommands === "boolean"
+      ? options.compactCommands
+      : true,
 });

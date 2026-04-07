@@ -4,13 +4,19 @@
  * When a new family is released, add it to the top of the relevant list.
  */
 const MODEL_FAMILIES: Record<string, string[]> = {
-  opus: ["anthropic/claude-opus-4-6", "anthropic/claude-opus-4"],
+  opus: [
+    "anthropic/claude-opus-4-6",
+    "anthropic/claude-opus-4-5",
+    "anthropic/claude-opus-4-1",
+    "anthropic/claude-opus-4-0",
+  ],
   sonnet: [
-    "anthropic/claude-sonnet-4-6",
     "anthropic/claude-sonnet-4-5",
     "anthropic/claude-sonnet-4-0",
+    "anthropic/claude-3-7-sonnet-20250219",
+    "anthropic/claude-3-5-sonnet-20241022",
   ],
-  haiku: ["anthropic/claude-haiku-4-6", "anthropic/claude-haiku-4-5"],
+  haiku: ["anthropic/claude-haiku-4-5", "anthropic/claude-3-5-haiku-20241022"],
 };
 
 /**
@@ -54,10 +60,6 @@ export const resolveModel = (
     return fuzzyMatch[1][0];
   }
 
-  // 5. Unresolvable — warn and fall back to user's default model
-  console.warn(
-    `[opencode-claude-commands] Unknown model "${model}" — falling back to your default model. ` +
-      `Add a modelMap override in plugin options to resolve this.`,
-  );
+  // 5. Unresolvable — return undefined so OpenCode uses the user's default model
   return undefined;
 };
