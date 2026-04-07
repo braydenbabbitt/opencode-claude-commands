@@ -54,6 +54,10 @@ export const resolveModel = (
     return fuzzyMatch[1][0];
   }
 
-  // 5. Unresolvable — return undefined so OpenCode uses the user's default model
+  // 5. Unresolvable — warn and fall back to user's default model
+  console.warn(
+    `[opencode-claude-commands] Unknown model "${model}" — falling back to your default model. ` +
+      `Add a modelMap override in plugin options to resolve this.`,
+  );
   return undefined;
 };
