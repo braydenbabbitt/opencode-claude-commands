@@ -21,12 +21,15 @@ Or with options:
 {
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
-    ["opencode-claude-commands", {
-      "prefix": "claude-",
-      "includeUserLevel": true,
-      "includeSkills": true,
-      "defaultAgent": "build"
-    }]
+    [
+      "opencode-claude-commands",
+      {
+        "prefix": "claude-",
+        "includeUserLevel": true,
+        "includeSkills": true,
+        "defaultAgent": "build"
+      }
+    ]
   ]
 }
 ```
@@ -46,51 +49,51 @@ The commands then appear in OpenCode's `/` autocomplete menu like any other nati
 
 ### Placeholders
 
-| Claude Code | OpenCode | Notes |
-|---|---|---|
-| `$ARGUMENTS` | `$ARGUMENTS` | Compatible, no change |
-| `$0`, `$1`, `$2` | `$1`, `$2`, `$3` | Shifted +1 (Claude is 0-based, OpenCode is 1-based) |
-| `$ARGUMENTS[0]` | `$1` | Converted to OpenCode positional args |
-| `` !`cmd` `` | `` !`cmd` `` | Compatible, no change |
-| ` ```! ` blocks | Multiple `` !`cmd` `` lines | Multi-line shell blocks are expanded |
+| Claude Code      | OpenCode                    | Notes                                               |
+| ---------------- | --------------------------- | --------------------------------------------------- |
+| `$ARGUMENTS`     | `$ARGUMENTS`                | Compatible, no change                               |
+| `$0`, `$1`, `$2` | `$1`, `$2`, `$3`            | Shifted +1 (Claude is 0-based, OpenCode is 1-based) |
+| `$ARGUMENTS[0]`  | `$1`                        | Converted to OpenCode positional args               |
+| `` !`cmd` ``     | `` !`cmd` ``                | Compatible, no change                               |
+| ` ```! ` blocks  | Multiple `` !`cmd` `` lines | Multi-line shell blocks are expanded                |
 
 ### Frontmatter
 
-| Claude Code field | OpenCode mapping | Notes |
-|---|---|---|
-| `description` | `description` | Direct mapping |
-| `model` | `model` | Direct mapping |
-| `agent` | `agent` | Validated against available OpenCode agents; falls back to `defaultAgent` if incompatible |
-| `context: fork` | `subtask: true` | Subagent execution |
-| `allowed-tools` | Dropped | No OpenCode equivalent |
-| `effort` | Dropped | No OpenCode equivalent |
-| `paths` | Dropped | No OpenCode equivalent |
-| `disable-model-invocation` | Dropped | No OpenCode equivalent |
-| `user-invocable` | Dropped | No OpenCode equivalent |
+| Claude Code field          | OpenCode mapping | Notes                                                                                     |
+| -------------------------- | ---------------- | ----------------------------------------------------------------------------------------- |
+| `description`              | `description`    | Direct mapping                                                                            |
+| `model`                    | `model`          | Direct mapping                                                                            |
+| `agent`                    | `agent`          | Validated against available OpenCode agents; falls back to `defaultAgent` if incompatible |
+| `context: fork`            | `subtask: true`  | Subagent execution                                                                        |
+| `allowed-tools`            | Dropped          | No OpenCode equivalent                                                                    |
+| `effort`                   | Dropped          | No OpenCode equivalent                                                                    |
+| `paths`                    | Dropped          | No OpenCode equivalent                                                                    |
+| `disable-model-invocation` | Dropped          | No OpenCode equivalent                                                                    |
+| `user-invocable`           | Dropped          | No OpenCode equivalent                                                                    |
 
 ### Command naming
 
-| Source | Command name |
-|---|---|
-| `.claude/commands/test.md` | `/test` |
+| Source                              | Command name     |
+| ----------------------------------- | ---------------- |
+| `.claude/commands/test.md`          | `/test`          |
 | `.claude/commands/frontend/lint.md` | `/frontend-lint` |
-| `.claude/skills/review/SKILL.md` | `/review` |
+| `.claude/skills/review/SKILL.md`    | `/review`        |
 
 With the `prefix` option set to `"claude-"`:
 
-| Source | Command name |
-|---|---|
-| `.claude/commands/test.md` | `/claude-test` |
+| Source                              | Command name            |
+| ----------------------------------- | ----------------------- |
+| `.claude/commands/test.md`          | `/claude-test`          |
 | `.claude/commands/frontend/lint.md` | `/claude-frontend-lint` |
 
 ## Options
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `prefix` | `string` | `""` | Prefix added to all imported command names. Use this to avoid collisions with existing OpenCode commands. |
-| `includeUserLevel` | `boolean` | `true` | Also scan `~/.claude/commands/` and `~/.claude/skills/` for user-level commands. |
-| `includeSkills` | `boolean` | `true` | Also scan `.claude/skills/*/SKILL.md` directories. |
-| `defaultAgent` | `string` | `"build"` | Fallback agent used when a Claude command specifies an agent that doesn't exist in OpenCode. |
+| Option             | Type      | Default   | Description                                                                                               |
+| ------------------ | --------- | --------- | --------------------------------------------------------------------------------------------------------- |
+| `prefix`           | `string`  | `""`      | Prefix added to all imported command names. Use this to avoid collisions with existing OpenCode commands. |
+| `includeUserLevel` | `boolean` | `true`    | Also scan `~/.claude/commands/` and `~/.claude/skills/` for user-level commands.                          |
+| `includeSkills`    | `boolean` | `true`    | Also scan `.claude/skills/*/SKILL.md` directories.                                                        |
+| `defaultAgent`     | `string`  | `"build"` | Fallback agent used when a Claude command specifies an agent that doesn't exist in OpenCode.              |
 
 ## Collision handling
 

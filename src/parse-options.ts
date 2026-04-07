@@ -1,5 +1,5 @@
-import type { PluginOptions } from "@opencode-ai/plugin"
-import type { PluginConfig } from "./types.js"
+import type { PluginOptions } from "@opencode-ai/plugin";
+import type { PluginConfig } from "./types.js";
 
 export const parseOptions = (options?: PluginOptions): PluginConfig => ({
   prefix: typeof options?.prefix === "string" ? options.prefix : "",
@@ -11,4 +11,4 @@ export const parseOptions = (options?: PluginOptions): PluginConfig => ({
     typeof options?.includeSkills === "boolean" ? options.includeSkills : true,
   defaultAgent:
     typeof options?.defaultAgent === "string" ? options.defaultAgent : "build",
-})
+});

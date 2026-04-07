@@ -3,7 +3,7 @@ export const resolveAgent = (
   validAgents: Set<string>,
   defaultAgent: string,
 ): string | undefined => {
-  if (!requestedAgent) return undefined
-  if (validAgents.has(requestedAgent)) return requestedAgent
-  return defaultAgent
-}
+  if (!requestedAgent) return undefined;
+  if (validAgents.has(requestedAgent)) return requestedAgent;
+  return defaultAgent;
+};

@@ -1,1 +1,1 @@
-export const SERVICE_NAME = "opencode-claude-commands"
+export const SERVICE_NAME = "opencode-claude-commands";

@@ -1,99 +1,96 @@
-import { readFile } from "fs/promises"
-import { join } from "path"
-import { homedir } from "os"
-import type { ClaudeCommand, PluginConfig } from "./types.js"
-import { parseFrontmatter } from "./parse-frontmatter.js"
-import { convertPlaceholders } from "./convert-placeholders.js"
-import { buildCommandName } from "./build-command-name.js"
-import { findMdFilesRecursive } from "./find-md-files.js"
-import { findSkillFiles } from "./find-skill-files.js"
+import { readFile } from "fs/promises";
+import { join } from "path";
+import { homedir } from "os";
+import type { ClaudeCommand, PluginConfig } from "./types.js";
+import { parseFrontmatter } from "./parse-frontmatter.js";
+import { convertPlaceholders } from "./convert-placeholders.js";
+import { buildCommandName } from "./build-command-name.js";
+import { findMdFilesRecursive } from "./find-md-files.js";
+import { findSkillFiles } from "./find-skill-files.js";
+
+const parseCommandFile = async (
+  filePath: string,
+  rootDir: string,
+  prefix: string,
+  isSkill: boolean,
+  label: string,
+): Promise<ClaudeCommand> => {
+  const raw = await readFile(filePath, "utf-8");
+  const { frontmatter, body } = parseFrontmatter(raw);
+  const template = convertPlaceholders(body);
+  const name = buildCommandName(filePath, rootDir, prefix, isSkill);
+
+  return {
+    name,
+    template,
+    description:
+      typeof frontmatter.description === "string"
+        ? frontmatter.description
+        : undefined,
+    model:
+      typeof frontmatter.model === "string" ? frontmatter.model : undefined,
+    agent:
+      typeof frontmatter.agent === "string" ? frontmatter.agent : undefined,
+    subtask: frontmatter.context === "fork" ? true : undefined,
+    source: `${label}:${filePath}`,
+  };
+};
 
 export const discoverCommands = async (
   directory: string,
   config: PluginConfig,
 ): Promise<ClaudeCommand[]> => {
-  const commands: ClaudeCommand[] = []
-
   const searchDirs: Array<{
-    commandsDir: string
-    skillsDir: string
-    label: string
+    commandsDir: string;
+    skillsDir: string;
+    label: string;
   }> = [
     {
       commandsDir: join(directory, ".claude", "commands"),
       skillsDir: join(directory, ".claude", "skills"),
       label: "project",
     },
-  ]
+  ];
 
   if (config.includeUserLevel) {
-    const home = homedir()
+    const home = homedir();
     searchDirs.push({
       commandsDir: join(home, ".claude", "commands"),
       skillsDir: join(home, ".claude", "skills"),
       label: "user",
-    })
+    });
   }
 
-  for (const { commandsDir, skillsDir, label } of searchDirs) {
-    // Discover .claude/commands/*.md (recursive)
-    const cmdFiles = await findMdFilesRecursive(commandsDir)
-    for (const filePath of cmdFiles) {
-      const raw = await readFile(filePath, "utf-8")
-      const { frontmatter, body } = parseFrontmatter(raw)
-      const template = convertPlaceholders(body)
-      const name = buildCommandName(filePath, commandsDir, config.prefix, false)
+  const nested = await Promise.all(
+    searchDirs.map(async ({ commandsDir, skillsDir, label }) => {
+      // Discover .claude/commands/*.md (recursive)
+      const cmdFiles = await findMdFilesRecursive(commandsDir);
+      const cmdCommands = await Promise.all(
+        cmdFiles.map((filePath) =>
+          parseCommandFile(filePath, commandsDir, config.prefix, false, label),
+        ),
+      );
 
-      commands.push({
-        name,
-        template,
-        description:
-          typeof frontmatter.description === "string"
-            ? frontmatter.description
-            : undefined,
-        model:
-          typeof frontmatter.model === "string"
-            ? frontmatter.model
-            : undefined,
-        agent:
-          typeof frontmatter.agent === "string"
-            ? frontmatter.agent
-            : undefined,
-        subtask: frontmatter.context === "fork" ? true : undefined,
-        source: `${label}:${filePath}`,
-      })
-    }
+      // Discover .claude/skills/*/SKILL.md
+      const skillCommands = config.includeSkills
+        ? await findSkillFiles(skillsDir).then((skillFiles) =>
+            Promise.all(
+              skillFiles.map((filePath) =>
+                parseCommandFile(
+                  filePath,
+                  skillsDir,
+                  config.prefix,
+                  true,
+                  label,
+                ),
+              ),
+            ),
+          )
+        : [];
 
-    // Discover .claude/skills/*/SKILL.md
-    if (config.includeSkills) {
-      const skillFiles = await findSkillFiles(skillsDir)
-      for (const filePath of skillFiles) {
-        const raw = await readFile(filePath, "utf-8")
-        const { frontmatter, body } = parseFrontmatter(raw)
-        const template = convertPlaceholders(body)
-        const name = buildCommandName(filePath, skillsDir, config.prefix, true)
+      return [...cmdCommands, ...skillCommands];
+    }),
+  );
 
-        commands.push({
-          name,
-          template,
-          description:
-            typeof frontmatter.description === "string"
-              ? frontmatter.description
-              : undefined,
-          model:
-            typeof frontmatter.model === "string"
-              ? frontmatter.model
-              : undefined,
-          agent:
-            typeof frontmatter.agent === "string"
-              ? frontmatter.agent
-              : undefined,
-          subtask: frontmatter.context === "fork" ? true : undefined,
-          source: `${label}:${filePath}`,
-        })
-      }
-    }
-  }
-
-  return commands
-}
+  return nested.flat();
+};
