@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@opencode-ai/plugin": "1.3.17",
+    "@types/bun": "1.3.11",
     "@types/node": "25.5.2",
     "husky": "9.1.7",
     "lint-staged": "16.4.0",
@@ -39,6 +40,7 @@
   "scripts": {
     "build": "bun build src/index.ts --outdir dist --target bun --format esm --minify",
     "typecheck": "tsc --noEmit",
+    "test": "bun test",
     "prepare": "husky",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
