@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "OpenCode plugin that loads slash commands from .claude/commands and .claude/skills directories",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "keywords": [
     "opencode",
     "opencode-plugin",
@@ -19,6 +19,7 @@
     "url": "https://github.com/braydenbabbitt/opencode-claude-commands"
   },
   "files": [
+    "dist",
     "src"
   ],
   "peerDependencies": {
@@ -36,6 +37,8 @@
     "*.{ts,json,md}": "prettier --write"
   },
   "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target bun --format esm --minify",
+    "typecheck": "tsc --noEmit",
     "prepare": "husky",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
