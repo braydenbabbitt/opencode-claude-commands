@@ -408,7 +408,7 @@ Do something with sonnet`,
 
     test("does not set pending restore when config has no model", async () => {
       mockClient.config.get.mockImplementationOnce(() =>
-        Promise.resolve({ data: {} }),
+        Promise.resolve({ data: { model: "" } }),
       );
       mockClient.config.update.mockClear();
 
