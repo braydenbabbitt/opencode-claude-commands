@@ -18,6 +18,7 @@ export const server: Plugin = async ({ client, directory }, options) => {
   // Build lookups for JIT behavior during command execution
   const unresolvedModels = new Map<string, string>();
   const fullTemplates = new Map<string, string>();
+  const commandsWithModel = new Set<string>();
 
   commands.forEach((cmd) => {
     if (cmd.rawModel && !cmd.model) {
@@ -26,7 +27,12 @@ export const server: Plugin = async ({ client, directory }, options) => {
     if (pluginConfig.compactCommands) {
       fullTemplates.set(cmd.name, cmd.template);
     }
+    if (cmd.model) {
+      commandsWithModel.add(cmd.name);
+    }
   });
+
+  const pendingModelRestore = new Map<string, string>();
 
   return {
     config: async (input: Config) => {
@@ -67,6 +73,29 @@ export const server: Plugin = async ({ client, directory }, options) => {
       });
     },
 
+    event: async ({ event }) => {
+      if (event.type !== "session.idle") return;
+
+      const sessionID = event.properties.sessionID;
+      const previousModel = pendingModelRestore.get(sessionID);
+      if (!previousModel) return;
+
+      pendingModelRestore.delete(sessionID);
+
+      try {
+        await client.config.update({
+          body: { model: previousModel },
+        });
+      } catch {
+        await client.tui.showToast({
+          body: {
+            message: `[${SERVICE_NAME}] Failed to restore model to ${previousModel}.`,
+            variant: "warning",
+          },
+        });
+      }
+    },
+
     "command.execute.before": async (input, output) => {
       // JIT model warning
       const rawModel = unresolvedModels.get(input.command);
@@ -77,6 +106,19 @@ export const server: Plugin = async ({ client, directory }, options) => {
             variant: "warning",
           },
         });
+      }
+
+      // If this command overrides the model, save the current model so we
+      // can restore it once the command finishes.
+      if (commandsWithModel.has(input.command)) {
+        try {
+          const { data: currentConfig } = await client.config.get();
+          if (currentConfig?.model) {
+            pendingModelRestore.set(input.sessionID, currentConfig.model);
+          }
+        } catch {
+          // Best-effort — if we can't read the config we simply skip the restore
+        }
       }
 
       // In compact mode, inject the full template as a text part
