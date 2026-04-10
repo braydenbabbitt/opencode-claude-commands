@@ -406,7 +406,7 @@ Do something with sonnet`,
       });
     });
 
-    test("does not set pending restore when config has no model", async () => {
+    test("does not set pending restore when config has no model and no fallback", async () => {
       mockClient.config.get.mockImplementationOnce(() =>
         Promise.resolve({ data: { model: "" } }),
       );
@@ -415,6 +415,8 @@ Do something with sonnet`,
       const result = await server(makePluginInput(tempDir), {
         includeUserLevel: false,
       });
+
+      // Don't call config hook — no lastKnownUserModel fallback available
 
       // Run a command with a model override, but config has no model set
       await result["command.execute.before"]!(
@@ -431,6 +433,107 @@ Do something with sonnet`,
       });
 
       expect(mockClient.config.update).not.toHaveBeenCalled();
+    });
+
+    test("restores model via global fallback when session ID differs (first-message edge case)", async () => {
+      mockClient.config.get.mockImplementation(() =>
+        Promise.resolve({ data: { model: "anthropic/claude-opus-4-5" } }),
+      );
+      mockClient.config.update.mockClear();
+
+      const result = await server(makePluginInput(tempDir), {
+        includeUserLevel: false,
+      });
+
+      // Simulate config hook to set lastKnownUserModel
+      await result.config!({ model: "anthropic/claude-opus-4-5" } as any);
+
+      // command.execute.before fires with a provisional session ID
+      await result["command.execute.before"]!(
+        { command: "with-model", sessionID: "sess-provisional" } as any,
+        { parts: [] } as any,
+      );
+
+      // session.idle fires with a DIFFERENT (real) session ID
+      await result.event!({
+        event: {
+          type: "session.idle",
+          properties: { sessionID: "sess-real" },
+        } as any,
+      });
+
+      expect(mockClient.config.update).toHaveBeenCalledTimes(1);
+      expect(mockClient.config.update).toHaveBeenCalledWith({
+        body: { model: "anthropic/claude-opus-4-5" },
+      });
+    });
+
+    test("restores model from config hook fallback when config.get() returns the command's model (race condition)", async () => {
+      // Simulate the race: config.get() already returns the command's model
+      mockClient.config.get.mockImplementation(() =>
+        Promise.resolve({ data: { model: "anthropic/claude-sonnet-4-6" } }),
+      );
+      mockClient.config.update.mockClear();
+
+      const result = await server(makePluginInput(tempDir), {
+        includeUserLevel: false,
+      });
+
+      // Config hook sets lastKnownUserModel to the user's REAL model
+      await result.config!({ model: "anthropic/claude-opus-4-5" } as any);
+
+      // command.execute.before — config.get() returns the command's model (sonnet)
+      // but lastKnownUserModel should be used as fallback
+      await result["command.execute.before"]!(
+        { command: "with-model", sessionID: "sess-race" } as any,
+        { parts: [] } as any,
+      );
+
+      // Session goes idle
+      await result.event!({
+        event: {
+          type: "session.idle",
+          properties: { sessionID: "sess-race" },
+        } as any,
+      });
+
+      expect(mockClient.config.update).toHaveBeenCalledTimes(1);
+      expect(mockClient.config.update).toHaveBeenCalledWith({
+        body: { model: "anthropic/claude-opus-4-5" },
+      });
+    });
+
+    test("restores model from config hook fallback when config.get() fails", async () => {
+      mockClient.config.get.mockImplementation(() =>
+        Promise.reject(new Error("config unavailable")),
+      );
+      mockClient.config.update.mockClear();
+
+      const result = await server(makePluginInput(tempDir), {
+        includeUserLevel: false,
+      });
+
+      // Config hook sets lastKnownUserModel
+      await result.config!({ model: "anthropic/claude-opus-4-5" } as any);
+
+      // command.execute.before — config.get() throws
+      await result["command.execute.before"]!(
+        { command: "with-model", sessionID: "sess-fail-fallback" } as any,
+        { parts: [] } as any,
+      );
+
+      // Session goes idle — should restore from lastKnownUserModel
+      await result.event!({
+        event: {
+          type: "session.idle",
+          properties: { sessionID: "sess-fail-fallback" },
+        } as any,
+      });
+
+      expect(mockClient.config.update).toHaveBeenCalledTimes(1);
+      expect(mockClient.config.update).toHaveBeenCalledWith({
+        body: { model: "anthropic/claude-opus-4-5" },
+      });
     });
   });
 });
